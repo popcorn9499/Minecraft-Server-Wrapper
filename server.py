@@ -125,18 +125,21 @@ class Server:
             command=input()
             if command.lower().startswith("!"):
                 if command.lower() == "!backup":
-                    self._writeConsole("say Starting Backup")
-                    self._writeConsole("save-off")
-                    self._writeConsole("save-all")
-                    self.backup.createBackup()
-                    self._writeConsole("save-on")
-                    self._writeConsole("save-all")
-                    self.backup.purgeBackups()
-                    self._writeConsole("say Backup Complete")
+                    Thread(target=self.backupScript(),daemon=True).start() #start backup as a thread
                 else:
                     print("This is a placeholder for the help dialog")
             else:
                 self._writeConsole(command)
+
+    def backupScript(self):
+        self._writeConsole("say Starting Backup")
+        self._writeConsole("save-off")
+        self._writeConsole("save-all")
+        self.backup.createBackup()
+        self._writeConsole("save-on")
+        self._writeConsole("save-all")
+        self.backup.purgeBackups()
+        self._writeConsole("say Backup Complete")
 
 s = Server()
 
