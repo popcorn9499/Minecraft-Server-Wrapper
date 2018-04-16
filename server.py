@@ -96,6 +96,7 @@ class Server:
         self.process = None
         self.ServerThread = None
         self.backup = backup()
+        self.backupThread = Thread(target=self.backupScript,daemon=True) #start backup as a thread
         
 
 
@@ -125,7 +126,11 @@ class Server:
             command=input()
             if command.lower().startswith("!"):
                 if command.lower() == "!backup":
-                    Thread(target=self.backupScript(),daemon=True).start() #start backup as a thread
+                    if self.backupThread.isAlive() == False:
+                        self.backupThread = Thread(target=self.backupScript,daemon=True) #start backup as a thread
+                        self.backupThread.start()
+                    else:
+                        print("Backup already occuring")
                 else:
                     print("This is a placeholder for the help dialog")
             else:
