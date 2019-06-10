@@ -39,7 +39,6 @@ class library:
             file = "{0}/{1}".format(dir,f)
             if library.creationTime(current_time,file) > library.creationTime(current_time,oldestFile):
                 oldestFile=file
-                #print("Delete: {0}".format(oldestFile))
         return oldestFile
 
     def fileHumanReadable(num, suffix='B'):
@@ -54,7 +53,6 @@ class library:
 
     #file load and save stuff
     def fileSave(fileName,config):
-        #print("Saving")
         f = open(fileName, 'w') #opens the file your saving to with write permissions
         f.write(json.dumps(config,sort_keys=True, indent=4 ) + "\n") #writes the string to a file
         f.close() #closes the file io
@@ -84,7 +82,6 @@ class library:
 
 class backup:
     def __init__(self,Server,config):
-        self.server = Server
         
         self.backupLocation = config["backupLocation"]
         self.backupDir = config["backupDir"]
@@ -93,9 +90,8 @@ class backup:
         self.titleBars = config["titleBars"]
         
         self.createbackupLocation()
-        #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
-        #reminder for later
-        
+        self.server = Server
+               
     def backupScript(self):
         print("Starting Server Backup")
         if self.titleBars:
@@ -123,18 +119,14 @@ class backup:
     def createBackup(self):
         spaceForBackup = library.getDriveFree(self.backupLocation) > library.getDirSize("./world")
         extraSpaceForBackup = library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024
-
         if spaceForBackup and extraSpaceForBackup:
-            
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             backupTitle= "{0}/{1}.zip".format(self.backupLocation,backupTime)
             zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,compresslevel=self.compressionLevel,allowZip64=True)
             os.chmod(backupTitle,0o755)
-
             worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
             currentSize = 0
             lastTime = time.time()
-
             for dirname, subdirs, files in os.walk(self.backupDir):
                 if dirname != self.backupLocation:
                     zf.write(dirname)
@@ -147,7 +139,6 @@ class backup:
                             print("Server Backup " + str(percentage) + "%")
                             if self.titleBars:
                                 self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
-                        
                         zf.write(os.path.join(dirname, filename))
             zf.close()
             size = library.file_size(backupTitle)
