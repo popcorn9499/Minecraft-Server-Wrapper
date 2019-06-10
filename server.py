@@ -112,6 +112,7 @@ class backup:
                         if currentTime - lastTime >=2: #waits until 2 seconds since the last time this section was executed have passed
                             lastTime=currentTime
                             percentage = math.floor((currentSize / worldSize) * 100)
+                            print("Server Backup " + str(percentage) + "%")
                             self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
                             self.server._writeConsole("say {0}".format(percentage))
                         
