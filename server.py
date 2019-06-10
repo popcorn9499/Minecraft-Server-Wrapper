@@ -90,15 +90,18 @@ class backup:
         self.backupDir = config["backupDir"]
         self.oldestBackups = config["oldestBackups"]
         self.compressionLevel = config["compressionLevel"]
+        self.titleBars = config["titleBars"]
         
         self.createbackupLocation()
         #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
         #reminder for later
         
     def backupScript(self):
-        #self.server._writeConsole("say Starting Backup")
         print("Starting Server Backup")
-        self.server._writeConsole('title @a actionbar ["",{"text":"Starting Server Backup","color":"dark_purple"}]')
+        if self.titleBars:
+            self.server._writeConsole('title @a actionbar ["",{"text":"Starting Server Backup","color":"dark_purple"}]')
+        else:
+            self.server._writeConsole("say Starting Server Backup")
         self.server._writeConsole("save-off")
         self.server._writeConsole("save-all")
         time.sleep(1)
@@ -107,8 +110,10 @@ class backup:
         self.server._writeConsole("save-on")
         self.server._writeConsole("save-all")
         self.purgeBackups()
-        #self.server._writeConsole("say Backup Complete {0}".format(size))
-        self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup Completed '+ size +'","color":"dark_purple"}]')
+        if self.titleBars:
+            self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup Completed '+ size +'","color":"dark_purple"}]')
+        else:
+            self.server._writeConsole("say Server Backup Complete {0}".format(size))
 
     def createbackupLocation(self):
         if not os.path.exists(self.backupLocation):
@@ -140,7 +145,8 @@ class backup:
                             lastTime=currentTime
                             percentage = math.floor((currentSize / worldSize) * 100)
                             print("Server Backup " + str(percentage) + "%")
-                            self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
+                            if self.titleBars:
+                                self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
                         
                         zf.write(os.path.join(dirname, filename))
             zf.close()
@@ -148,7 +154,7 @@ class backup:
             return size
 
 
-    def purgeBackups(self):
+    def purgeBackups(self): #purges old backups either for more space or due to too many backups
         current_time = time.time()
 
         for f in os.listdir(self.backupLocation): #checks if any backups are older than x.
@@ -158,7 +164,7 @@ class backup:
                 os.unlink(file)
                 print('{} removed'.format(f))
 
-        freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < library.getDirSize("./world")
+        freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < 3*library.getDirSize("./world") #we multiply world size by 3 to allow us to have some free space after the backup for another backup
         lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
 
         if freeBackupLessThanWorldSize and lessThanGBFree:
@@ -177,9 +183,9 @@ class Server:
         config = library.fileLoad(configName)
         self.backup = backup(self,config)
         self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
-        self.cmdAllowedList = config["cmdAllowedUserList"]#["popcorn9499", "HiddenKitten23","PoisonedPanther"]
+        self.cmdAllowedList = config["cmdAllowedUserList"]
         
-    def listenCommands(self,message):
+    def listenCommands(self,message):#listens for commands executed by users on the server
         for user in self.cmdAllowedList:
             if -1 != message.find("{0} issued server command: /backup".format(user)):
                 if self.backupThread.isAlive() == False:
@@ -215,7 +221,7 @@ class Server:
         self.ServerThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
         while True:
             command=input()
-            if command.lower().startswith("!"):
+            if command.lower().startswith("!"): #listens for the commands in the console
                 if command.lower() == "!backup":
                     if self.backupThread.isAlive() == False:
                         self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
@@ -228,8 +234,8 @@ class Server:
                 self._writeConsole(command)
 
 config = "wrapperConfig.json"
-if (os.path.isfile(config) == False):
-    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": []}
+if (os.path.isfile(config) == False):#checks if the config exists or not
+    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": [],"titleBars": True}
     library.fileSave(config,configContents)
 
 
