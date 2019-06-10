@@ -39,6 +39,19 @@ class library:
                 #print("Delete: {0}".format(oldestFile))
         return oldestFile
 
+    def fileHumanReadable(num, suffix='B'):
+        for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+            if abs(num) < 1024.0:
+                return "%3.1f%s%s" % (num, unit, suffix)
+            num /= 1024.0
+        return "%.1f%s%s" % (num, 'Yi', suffix)
+
+    def file_size(fname):
+        import os
+        statinfo = os.stat(fname)
+        return statinfo.st_size
+
+
 
 
 
@@ -57,11 +70,12 @@ class backup:
         self.server._writeConsole("say Starting Backup")
         self.server._writeConsole("save-off")
         self.server._writeConsole("save-all")
-        self.createBackup()
+        size = self.createBackup()
+        size = library.fileHumanReadable(size)
         self.server._writeConsole("save-on")
         self.server._writeConsole("save-all")
         self.purgeBackups()
-        self.server._writeConsole("say Backup Complete")
+        self.server._writeConsole("say Backup Complete {0}".format(size))
 
     def createbackupLocation(self):
         if not os.path.exists(self.backupLocation):
@@ -87,6 +101,8 @@ class backup:
                     for filename in files:
                         zf.write(os.path.join(dirname, filename))
             zf.close()
+            size = library.file_size(backupTitle)
+            return size
 
 
     def purgeBackups(self):
