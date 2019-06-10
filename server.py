@@ -89,6 +89,7 @@ class backup:
         self.compressionLevel = config["compressionLevel"]
         self.titleBars = config["titleBars"]
         self.compressionMethod = config["compressionMethod"] # supports "pigz" "gzip" "zip" other methods are easy to add however
+        self.compressionThreads = config["compressionThreads"] #limits compression threads on multi threaded compression tools
         self.createbackupLocation()
         self.server = Server
 
@@ -156,7 +157,7 @@ class backup:
                 self._listen()
             elif self.compressionMethod == "pigz":
                 backupTitle = backupTitle + ".tar.gz"
-                args="nice -n 19 tar --exclude='{1}' -cvf - '{0}'  | pigz -{2} -p 32 > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
+                args="nice -n 19 tar --exclude='{1}' -cvf - '{0}'  | pigz -{2} -p {4} > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle,self.compressionThreads)
                 print(args)
                 self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
                 #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
@@ -269,7 +270,7 @@ class Server:
 
 config = "wrapperConfig.json"
 if (os.path.isfile(config) == False):#checks if the config exists or not
-    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": [],"titleBars": True,"compressionMethod": "zip"}
+    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": [],"titleBars": True,"compressionMethod": "zip","compressionThreads": "4"}
     library.fileSave(config,configContents)
 
 
