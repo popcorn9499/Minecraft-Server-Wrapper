@@ -9,12 +9,14 @@ import datetime
 
 
 class library:
-    def getDirSize(dir): #this gets the directory size
+    def getDirSize(dir,ignoreDir=[]): #this gets the directory size
         folderSize = 0
         for root, dirs, files in os.walk(dir,followlinks=False): #goes through all the files and folders
-            for x in files:
-                if os.path.islink("{0}/{1}".format(root,x)) == False and os.path.isfile("{0}/{1}".format(root,x)): #checks if its a link or not
-                    folderSize = folderSize + os.path.getsize("{0}/{1}".format(root,x)) #gets the file size of the file and adds it to the total size
+            for ignore in ignoreDir:
+                if root != ignore:
+                    for x in files:
+                        if os.path.islink("{0}/{1}".format(root,x)) == False and os.path.isfile("{0}/{1}".format(root,x)): #checks if its a link or not
+                            folderSize = folderSize + os.path.getsize("{0}/{1}".format(root,x)) #gets the file size of the file and adds it to the total size
         return folderSize
 
     def getDriveFree(dir): #gets the drive space free
@@ -47,9 +49,7 @@ class library:
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
     def file_size(fname):
-        import os
-        statinfo = os.stat(fname)
-        return statinfo.st_size
+        return os.path.getsize(fname)
 
 
 
