@@ -174,7 +174,6 @@ class backup:
             process = self.process.poll()
             if not line and process is not None:
                 break
-            print(line.decode().strip())
             try:
                 self.currentSize = self.currentSize + library.file_size(line.decode().strip())
             except:
@@ -186,7 +185,6 @@ class backup:
                 print("Server Backup " + str(percentage) + "%")
                 if self.titleBars:
                     self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
-            print(line.decode().strip())
         print("BACKUP COMPLETE")
             #print('', end='', flush=True)# end='' so that it doesn't go to a new line, to finish input on this line.
         
