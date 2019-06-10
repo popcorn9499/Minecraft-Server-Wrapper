@@ -149,14 +149,14 @@ class backup:
                 zf.close()
             elif self.compressionMethod == "gzip":
                 backupTitle = backupTitle + ".tar.gz"
-                args="tar --exclude='{1}' -cvf - '{0}'  | gzip -{2} > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
+                args="nice -n 19 tar --exclude='{1}' -cvf - '{0}'  | gzip -{2} > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
                 print(args)
                 self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
                 #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
                 self._listen()
             elif self.compressionMethod == "pigz":
                 backupTitle = backupTitle + ".tar.gz"
-                args="tar --exclude='{1}' -cvf - '{0}'  | pigz -{2} -p 32 > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
+                args="nice -n 19 tar --exclude='{1}' -cvf - '{0}'  | pigz -{2} -p 32 > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
                 print(args)
                 self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
                 #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
