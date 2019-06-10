@@ -88,7 +88,7 @@ class backup:
         self.oldestBackups = config["oldestBackups"]
         self.compressionLevel = config["compressionLevel"]
         self.titleBars = config["titleBars"]
-        self.compressionMethod = "pigz"
+        self.compressionMethod = config["compressionMethod"]
         self.createbackupLocation()
         self.server = Server
 
@@ -271,7 +271,7 @@ class Server:
 
 config = "wrapperConfig.json"
 if (os.path.isfile(config) == False):#checks if the config exists or not
-    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": [],"titleBars": True}
+    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": [],"titleBars": True,"compressionMethod": "zip"}
     library.fileSave(config,configContents)
 
 
