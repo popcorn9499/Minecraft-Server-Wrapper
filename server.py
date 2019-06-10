@@ -43,19 +43,30 @@ class library:
 
 
 class backup:
-    def __init__(self):
-
+    def __init__(self,Server):
+        self.server = Server
         self.backupLocation = "./backups"
         self.backupDir = "."
         self.createbackupLocation()
         self.oldestBackups = 7
+        self.compressionLevel = 9
+        #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
+        #reminder for later
         
+    def backupScript(self):
+        self.server._writeConsole("say Starting Backup")
+        self.server._writeConsole("save-off")
+        self.server._writeConsole("save-all")
+        self.createBackup()
+        self.server._writeConsole("save-on")
+        self.server._writeConsole("save-all")
+        self.purgeBackups()
+        self.server._writeConsole("say Backup Complete")
 
     def createbackupLocation(self):
         if not os.path.exists(self.backupLocation):
             os.makedirs(self.backupLocation)
             self.createbackupLocation()
-
 
     def createBackup(self):
         spaceForBackup = library.getDriveFree(self.backupLocation) > library.getDirSize("./world")
@@ -65,9 +76,7 @@ class backup:
             
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             backupTitle= "{0}/{1}.zip".format(self.backupLocation,backupTime)
-
-            zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,allowZip64=True)
-            
+            zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,compresslevel=self.compressionLevel,allowZip64=True)
             os.chmod(backupTitle,0o755)
 
             for dirname, subdirs, files in os.walk(self.backupDir):
@@ -83,7 +92,7 @@ class backup:
     def purgeBackups(self):
         current_time = time.time()
 
-        for f in os.listdir(self.backupLocation):
+        for f in os.listdir(self.backupLocation): #checks if any backups are older than x.
             file = "{0}/{1}".format(self.backupLocation,f)
             creation_time = os.path.getmtime(file)
             if (current_time - creation_time) // (24*3600) >= self.oldestBackups:
@@ -94,7 +103,7 @@ class backup:
         lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
 
         if freeBackupLessThanWorldSize and lessThanGBFree:
-            os.unlink(library.findOldestFile(self.backupLocation))
+            os.unlink(library.findOldestFile(self.backupLocation)) #removes the oldest backup if
 
 
 #for server script
@@ -106,8 +115,8 @@ class Server:
     def __init__(self):
         self.process = None
         self.ServerThread = None
-        self.backup = backup()
-        self.backupThread = Thread(target=self.backupScript,daemon=True) #start backup as a thread
+        self.backup = backup(self)
+        self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
         
 
 
@@ -138,7 +147,7 @@ class Server:
             if command.lower().startswith("!"):
                 if command.lower() == "!backup":
                     if self.backupThread.isAlive() == False:
-                        self.backupThread = Thread(target=self.backupScript,daemon=True) #start backup as a thread
+                        self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
                         self.backupThread.start()
                     else:
                         print("Backup already occuring")
@@ -147,15 +156,7 @@ class Server:
             else:
                 self._writeConsole(command)
 
-    def backupScript(self):
-        self._writeConsole("say Starting Backup")
-        self._writeConsole("save-off")
-        self._writeConsole("save-all")
-        self.backup.createBackup()
-        self._writeConsole("save-on")
-        self._writeConsole("save-all")
-        self.backup.purgeBackups()
-        self._writeConsole("say Backup Complete")
+    
 
 s = Server()
 
