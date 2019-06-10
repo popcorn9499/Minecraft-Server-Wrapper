@@ -48,6 +48,7 @@ class backup:
         self.backupLocation = "./backups"
         self.backupDir = "."
         self.createbackupLocation()
+        self.oldestBackups = 7
         
 
     def createbackupLocation(self):
@@ -57,13 +58,18 @@ class backup:
 
 
     def createBackup(self):
-        if library.getDriveFree(self.backupLocation) > library.getDirSize("./world") and library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024:
+        spaceForBackup = library.getDriveFree(self.backupLocation) > library.getDirSize("./world")
+        extraSpaceForBackup = library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024
+
+        if spaceForBackup and extraSpaceForBackup:
             
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             backupTitle= "{0}/{1}.zip".format(self.backupLocation,backupTime)
 
             zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,allowZip64=True)
+            
             os.chmod(backupTitle,0o755)
+
             for dirname, subdirs, files in os.walk(self.backupDir):
                 #print(dirname)
                 #add a loop to check for a list of excluded stuff
@@ -80,12 +86,13 @@ class backup:
         for f in os.listdir(self.backupLocation):
             file = "{0}/{1}".format(self.backupLocation,f)
             creation_time = os.path.getmtime(file)
-            if (current_time - creation_time) // (24*3600) >= 7:
+            if (current_time - creation_time) // (24*3600) >= self.oldestBackups:
                 os.unlink(file)
                 print('{} removed'.format(f))
 
         freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < library.getDirSize("./world")
         lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
+
         if freeBackupLessThanWorldSize and lessThanGBFree:
             os.unlink(library.findOldestFile(self.backupLocation))
 
