@@ -6,6 +6,7 @@ import os
 import zipfile
 import time #for the backup timestamp
 import datetime
+import math
 
 
 class library:
@@ -108,10 +109,10 @@ class backup:
                         currentSize = currentSize + library.file_size(os.path.join(dirname, filename))
                         if currentTime - lastTime >=5:
                             lastTime=currentTime
+                            percentage = math.floor((currentSize / worldSize) * 100)
                             #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
                             self.server._writeConsole("say {0}".format(percentage))
                         
-                        self.server._writeConsole("say {0}".format(percentage))
                         zf.write(os.path.join(dirname, filename))
             print(currentSize)
             zf.close()
