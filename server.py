@@ -178,7 +178,7 @@ class Server:
         
     def listenCommands(self,message):#listens for commands executed by users on the server
         for user in self.cmdAllowedList:
-            if -1 != message.find("{0} issued server command: /backup".format(user)):
+            if -1 != message.find("{0} issued server command: /Backup".format(user)):
                 if self.backupThread.isAlive() == False:
                     self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
                     self.backupThread.start()
