@@ -88,7 +88,7 @@ class backup:
         self.oldestBackups = config["oldestBackups"]
         self.compressionLevel = config["compressionLevel"]
         self.titleBars = config["titleBars"]
-        self.compressionMethod = config["compressionMethod"]
+        self.compressionMethod = config["compressionMethod"] # supports "pigz" "gzip" "zip" other methods are easy to add however
         self.createbackupLocation()
         self.server = Server
 
