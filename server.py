@@ -127,7 +127,6 @@ class backup:
             os.chmod(backupTitle,0o755)
 
             worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
-            print(worldSize)
             currentSize = 0
             lastTime = time.time()
 
@@ -142,10 +141,8 @@ class backup:
                             percentage = math.floor((currentSize / worldSize) * 100)
                             print("Server Backup " + str(percentage) + "%")
                             self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
-                            self.server._writeConsole("say {0}".format(percentage))
                         
                         zf.write(os.path.join(dirname, filename))
-            print(currentSize)
             zf.close()
             size = library.file_size(backupTitle)
             return size
