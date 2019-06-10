@@ -68,15 +68,19 @@ class backup:
         #reminder for later
         
     def backupScript(self):
-        self.server._writeConsole("say Starting Backup")
+        #self.server._writeConsole("say Starting Backup")
+        print("Starting Server Backup")
+        self.server._writeConsole('title @a actionbar ["",{"text":"Starting Server Backup","color":"dark_purple"}]')
         self.server._writeConsole("save-off")
         self.server._writeConsole("save-all")
+        time.sleep(1)
         size = self.createBackup()
         size = library.fileHumanReadable(size)
         self.server._writeConsole("save-on")
         self.server._writeConsole("save-all")
         self.purgeBackups()
-        self.server._writeConsole("say Backup Complete {0}".format(size))
+        #self.server._writeConsole("say Backup Complete {0}".format(size))
+        self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup Completed '+ size +'","color":"dark_purple"}]')
 
     def createbackupLocation(self):
         if not os.path.exists(self.backupLocation):
@@ -100,17 +104,15 @@ class backup:
             lastTime = time.time()
 
             for dirname, subdirs, files in os.walk(self.backupDir):
-                #print(dirname)
-                #add a loop to check for a list of excluded stuff
                 if dirname != self.backupLocation:
                     zf.write(dirname)
                     for filename in files:
                         currentTime = time.time() 
                         currentSize = currentSize + library.file_size(os.path.join(dirname, filename))
-                        if currentTime - lastTime >=5:
+                        if currentTime - lastTime >=2: #waits until 2 seconds since the last time this section was executed have passed
                             lastTime=currentTime
                             percentage = math.floor((currentSize / worldSize) * 100)
-                            #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
+                            self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
                             self.server._writeConsole("say {0}".format(percentage))
                         
                         zf.write(os.path.join(dirname, filename))
