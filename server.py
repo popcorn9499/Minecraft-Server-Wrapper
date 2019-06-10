@@ -199,6 +199,7 @@ class Server:
             process = self.process.poll()
             if not line and process is not None:
                 break
+            self.listenCommands(line.decode().strip())
             print('\r'+line.decode().strip())
             #print('', end='', flush=True)# end='' so that it doesn't go to a new line, to finish input on this line.
         print('\rServer Closed with code: {}'.format(self.process.poll())) #line feed to return to the start of the line, will be processed on the flush with the next line
