@@ -57,7 +57,8 @@ class backup:
 
 
     def createBackup(self):
-        if library.getDriveFree("./") > library.getDirSize("./world") and library.getDriveFree("./") - library.getDirSize("./world") > 1024*1024*1024:
+        if library.getDriveFree(self.backupLocation) > library.getDirSize("./world") and library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024:
+            
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             backupTitle= "{0}/{1}.zip".format(self.backupLocation,backupTime)
 
@@ -82,7 +83,10 @@ class backup:
             if (current_time - creation_time) // (24*3600) >= 7:
                 os.unlink(file)
                 print('{} removed'.format(f))
-        if library.getDriveFree("./") < library.getDirSize("./world") and (library.getDriveFree("./") - library.getDirSize("./world")) < 1024*1024*1024:
+
+        freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < library.getDirSize("./world")
+        lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
+        if freeBackupLessThanWorldSize and lessThanGBFree:
             os.unlink(library.findOldestFile(self.backupLocation))
 
 
