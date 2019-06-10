@@ -96,6 +96,7 @@ class backup:
             worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
             print(worldSize)
             currentSize = 0
+            lastTime = time.time()
 
             for dirname, subdirs, files in os.walk(self.backupDir):
                 #print(dirname)
@@ -103,8 +104,12 @@ class backup:
                 if dirname != self.backupLocation:
                     zf.write(dirname)
                     for filename in files:
+                        currentTime = time.time() 
                         currentSize = currentSize + library.file_size(os.path.join(dirname, filename))
-                        percentage = (currentSize / worldSize) * 100
+                        if currentTime - lastTime >=5:
+                            lastTime=currentTime
+                            #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
+                            self.server._writeConsole("say {0}".format(percentage))
                         
                         self.server._writeConsole("say {0}".format(percentage))
                         zf.write(os.path.join(dirname, filename))
