@@ -7,7 +7,7 @@ import zipfile
 import time #for the backup timestamp
 import datetime
 import math
-
+import json
 
 class library:
     def getDirSize(dir,ignoreDir=[]): #this gets the directory size
@@ -52,18 +52,46 @@ class library:
     def file_size(fname):
         return os.path.getsize(fname)
 
+    #file load and save stuff
+    def fileSave(fileName,config):
+        #print("Saving")
+        f = open(fileName, 'w') #opens the file your saving to with write permissions
+        f.write(json.dumps(config,sort_keys=True, indent=4 ) + "\n") #writes the string to a file
+        f.close() #closes the file io
 
+    def fileLoad(fileName):#loads files
+        with open(fileName, 'r') as handle:#loads the json file
+            config = json.load(handle) 
+        return config
 
+    def loadConf(file):
+        file = library.fileLoad(file.format(os.sep))
+        return file
+
+    def checkFolder(folderPath,folderName):
+        if os.path.isdir(folderPath) == False:
+            print("{0} Folder Does Not Exist".format(folderName))
+            print("Creating...")
+            os.makedirs(folderPath)
+
+    def checkFile(examplePath,filePath,fileName):
+        if (os.path.isfile(filePath) == False):
+            print("{0} File Does Not Exist".format(fileName))
+            print("Creating...")
+            data = fileLoad(examplePath)
+            library.fileSave(filePath,data)
 
 
 class backup:
-    def __init__(self,Server):
+    def __init__(self,Server,config):
         self.server = Server
-        self.backupLocation = "./backups"
-        self.backupDir = "."
+        
+        self.backupLocation = config["backupLocation"]
+        self.backupDir = config["backupDir"]
+        self.oldestBackups = config["oldestBackups"]
+        self.compressionLevel = config["compressionLevel"]
+        
         self.createbackupLocation()
-        self.oldestBackups = 7
-        self.compressionLevel = 9
         #/title @a actionbar ["",{"text":"This is an example actionbar","color":"dark_purple"}]
         #reminder for later
         
@@ -146,12 +174,13 @@ from threading import Thread
 import time
 import os
 class Server:
-    def __init__(self):
+    def __init__(self,configName):
         self.process = None
         self.ServerThread = None
-        self.backup = backup(self)
+        config = library.fileLoad(configName)
+        self.backup = backup(self,config)
         self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
-        self.cmdAllowedList = ["popcorn9499", "HiddenKitten23","PoisonedPanther"]
+        self.cmdAllowedList = config["cmdAllowedUserList"]#["popcorn9499", "HiddenKitten23","PoisonedPanther"]
         
     def listenCommands(self,message):
         for user in self.cmdAllowedList:
@@ -200,8 +229,13 @@ class Server:
             else:
                 self._writeConsole(command)
 
-    
+config = "wrapperConfig.json"
+if (os.path.isfile(config) == False):
+    configContents = {"backupLocation": "./backups", "backupDir": ".", "oldestBackups": 7, "compressionLevel": 9, "cmdAllowedUserList": []}
+    library.fileSave(config,configContents)
 
-s = Server()
+
+
+s = Server(config)
 
 s.main()
