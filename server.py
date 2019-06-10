@@ -147,10 +147,16 @@ class backup:
                                     self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
                             zf.write(os.path.join(dirname, filename))
                 zf.close()
-            elif self.compressionMethod == "pigz":
-                #tar cvf - ./world/ | pigz -9 -p 16 > ./backups/mybackup.tar.gz
+            elif self.compressionMethod == "gzip":
                 backupTitle = backupTitle + ".tar.gz"
                 args="tar --exclude='{1}' -cvf - '{0}'  | gzip -{2} > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
+                print(args)
+                self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
+                #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
+                self._listen()
+            elif self.compressionMethod == "pigz":
+                backupTitle = backupTitle + ".tar.gz"
+                args="tar --exclude='{1}' -cvf - '{0}'  | pigz -{2} -p 32 > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
                 print(args)
                 self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
                 #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
