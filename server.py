@@ -88,9 +88,12 @@ class backup:
         self.oldestBackups = config["oldestBackups"]
         self.compressionLevel = config["compressionLevel"]
         self.titleBars = config["titleBars"]
-        
+        self.compressionMethod = "pigz"
         self.createbackupLocation()
         self.server = Server
+
+        self.process = None
+        self.processThread = None
                
     def backupScript(self):
         print("Starting Server Backup")
@@ -121,30 +124,66 @@ class backup:
         extraSpaceForBackup = library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024
         if spaceForBackup and extraSpaceForBackup:
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-            backupTitle= "{0}/{1}.zip".format(self.backupLocation,backupTime)
-            zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,compresslevel=self.compressionLevel,allowZip64=True)
-            os.chmod(backupTitle,0o755)
-            worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
-            currentSize = 0
+            backupTitle= "{0}/{1}".format(self.backupLocation,backupTime)
+           
+            
+            self.worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
+            self.currentSize = 0
             lastTime = time.time()
-            for dirname, subdirs, files in os.walk(self.backupDir):
-                if dirname != self.backupLocation:
-                    zf.write(dirname)
-                    for filename in files:
-                        currentTime = time.time() 
-                        currentSize = currentSize + library.file_size(os.path.join(dirname, filename))
-                        if currentTime - lastTime >=2: #waits until 2 seconds since the last time this section was executed have passed
-                            lastTime=currentTime
-                            percentage = math.floor((currentSize / worldSize) * 100)
-                            print("Server Backup " + str(percentage) + "%")
-                            if self.titleBars:
-                                self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
-                        zf.write(os.path.join(dirname, filename))
-            zf.close()
+            if self.compressionMethod == "zip":
+                backupTime= backupTime + ".zip"
+                zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,compresslevel=self.compressionLevel,allowZip64=True)
+                for dirname, subdirs, files in os.walk(self.backupDir):
+                    if dirname != self.backupLocation:
+                        zf.write(dirname)
+                        for filename in files:
+                            currentTime = time.time() 
+                            self.currentSize = self.currentSize + library.file_size(os.path.join(dirname, filename))
+                            if currentTime - lastTime >=2: #waits until 2 seconds since the last time this section was executed have passed
+                                lastTime=currentTime
+                                percentage = math.floor((self.currentSize / self.worldSize) * 100)
+                                print("Server Backup " + str(percentage) + "%")
+                                if self.titleBars:
+                                    self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
+                            zf.write(os.path.join(dirname, filename))
+                zf.close()
+            elif self.compressionMethod == "pigz":
+                #tar cvf - ./world/ | pigz -9 -p 16 > ./backups/mybackup.tar.gz
+                backupTitle = backupTitle + ".tar.gz"
+                args="tar --exclude='{1}' -cvf - '{0}'  | gzip -{2} > '{3}'".format(self.backupDir,self.backupLocation,self.compressionLevel,backupTitle)
+                print(args)
+                self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,shell=True) #starts the server process
+                #self.processThread = Thread(target=self._listen, daemon=True).start() #daemon thread in the background.
+                self._listen()
+                
+            os.chmod(backupTitle,0o755)
             size = library.file_size(backupTitle)
             return size
 
-
+    def _listen(self):
+        lastTime = time.time()
+        print("Backing up")
+        while True:
+            line = self.process.stdout.readline()
+            process = self.process.poll()
+            if not line and process is not None:
+                break
+            print(line.decode().strip())
+            try:
+                self.currentSize = self.currentSize + library.file_size(line.decode().strip())
+            except:
+                pass
+            currentTime = time.time() 
+            if currentTime - lastTime >=2: #waits until 2 seconds since the last time this section was executed have passed
+                lastTime=currentTime
+                percentage = math.floor((self.currentSize / self.worldSize) * 100)
+                print("Server Backup " + str(percentage) + "%")
+                if self.titleBars:
+                    self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup ' + str(percentage) + '%","color":"dark_purple"}]')
+            print(line.decode().strip())
+        print("BACKUP COMPLETE")
+            #print('', end='', flush=True)# end='' so that it doesn't go to a new line, to finish input on this line.
+        
     def purgeBackups(self): #purges old backups either for more space or due to too many backups
         current_time = time.time()
 
