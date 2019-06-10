@@ -151,7 +151,17 @@ class Server:
         self.ServerThread = None
         self.backup = backup(self)
         self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
+        self.cmdAllowedList = ["popcorn9499", "HiddenKitten23","PoisonedPanther"]
         
+    def listenCommands(self,message):
+        for user in self.cmdAllowedList:
+            if -1 != message.find("{0} issued server command: /backup".format(user)):
+                if self.backupThread.isAlive() == False:
+                    self.backupThread = Thread(target=self.backup.backupScript,daemon=True) #start backup as a thread
+                    self.backupThread.start()
+                else:
+                    self._writeConsole("msg {0} Backup Already Occuring".format(user))
+                    print("Backup already occuring")
 
 
     def _listen(self):
