@@ -93,13 +93,22 @@ class backup:
             zf = zipfile.ZipFile(backupTitle, "w",compression=zipfile.ZIP_DEFLATED,compresslevel=self.compressionLevel,allowZip64=True)
             os.chmod(backupTitle,0o755)
 
+            worldSize = library.getDirSize(self.backupDir,[self.backupLocation])
+            print(worldSize)
+            currentSize = 0
+
             for dirname, subdirs, files in os.walk(self.backupDir):
                 #print(dirname)
                 #add a loop to check for a list of excluded stuff
                 if dirname != self.backupLocation:
                     zf.write(dirname)
                     for filename in files:
+                        currentSize = currentSize + library.file_size(os.path.join(dirname, filename))
+                        percentage = (currentSize / worldSize) * 100
+                        
+                        self.server._writeConsole("say {0}".format(percentage))
                         zf.write(os.path.join(dirname, filename))
+            print(currentSize)
             zf.close()
             size = library.file_size(backupTitle)
             return size
