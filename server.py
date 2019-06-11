@@ -201,12 +201,18 @@ class backup:
             if (current_time - creation_time) // (24*3600) >= self.oldestBackups:
                 os.unlink(file)
                 print('{} removed'.format(f))
-
+        print("Free Disk Space {0}".format(library.fileHumanReadable(library.getDriveFree(self.backupLocation))))
+        print("Server World Disk Space {0}".format(library.fileHumanReadable(library.getDirSize("./world"))))
         freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < 3*library.getDirSize("./world") #we multiply world size by 3 to allow us to have some free space after the backup for another backup
         lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
 
         if freeBackupLessThanWorldSize and lessThanGBFree:
-            os.unlink(library.findOldestFile(self.backupLocation)) #removes the oldest backup if
+            try:
+                os.unlink(library.findOldestFile(self.backupLocation)) #removes the oldest backup if
+                print("File removed")
+            except Exception as e:
+                print(e)
+                pass
 
 
 #for server script
