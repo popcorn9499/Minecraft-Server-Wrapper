@@ -111,7 +111,7 @@ class backup:
         self.server._writeConsole("save-all")
         self.purgeBackups()
         if self.titleBars:
-            self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup Completed '+ size +'","color":"dark_purple"}]')
+            self.server._writeConsole('title @a actionbar ["",{"text":"Server Backup Completed '+ str(size) +'","color":"dark_purple"}]')
         else:
             self.server._writeConsole("say Server Backup Complete {0}".format(size))
 
