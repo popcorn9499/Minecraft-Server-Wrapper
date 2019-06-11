@@ -126,7 +126,7 @@ class backup:
     def createBackup(self):
         spaceForBackup = library.getDriveFree(self.backupLocation) > library.getDirSize("./world")
         extraSpaceForBackup = library.getDriveFree(self.backupLocation) - library.getDirSize("./world") > 1024*1024*1024
-        if spaceForBackup and extraSpaceForBackup:
+        if library.getDirSize(self.backupLocation) <= 700*1024*1024*1024:
             backupTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             backupTitle= "{0}/{1}".format(self.backupLocation,backupTime)
            
@@ -203,10 +203,13 @@ class backup:
                 print('{} removed'.format(f))
         print("Free Disk Space {0}".format(library.fileHumanReadable(library.getDriveFree(self.backupLocation))))
         print("Server World Disk Space {0}".format(library.fileHumanReadable(library.getDirSize("./world"))))
-        freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < 3*library.getDirSize("./world") #we multiply world size by 3 to allow us to have some free space after the backup for another backup
-        lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
+        #freeBackupLessThanWorldSize = library.getDriveFree(self.backupLocation) < 3*library.getDirSize("./world") #we multiply world size by 3 to allow us to have some free space after the backup for another backup
+        #lessThanGBFree = (library.getDriveFree(self.backupLocation) - library.getDirSize("./world")) < 1024*1024*1024
 
-        if freeBackupLessThanWorldSize and lessThanGBFree:
+        #if freeBackupLessThanWorldSize and lessThanGBFree:
+        print(library.getDirSize(self.backupLocation))
+        print(700*1024*1024*1024)
+        if library.getDirSize(self.backupLocation) <= 700*1024*1024*1024:
             try:
                 os.unlink(library.findOldestFile(self.backupLocation)) #removes the oldest backup if
                 print("File removed")
