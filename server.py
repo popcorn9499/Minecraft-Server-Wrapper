@@ -10,7 +10,7 @@ import math
 import json
 
 class library:
-    def getDirSize(dir,ignoreDir=[]): #this gets the directory size
+    def getDirSize(dir,ignoreDir=[""]): #this gets the directory size
         folderSize = 0
         for root, dirs, files in os.walk(dir,followlinks=False): #goes through all the files and folders
             for ignore in ignoreDir:
